@@ -8,7 +8,7 @@
 #include <vitis/ai/yolovx.hpp>
 //#include <vitis/ai/demo.hpp>
 
-#include "./process_result.hpp"
+//#include "./process_result.hpp"
 
 #include <opencv2/opencv.hpp>
 
@@ -41,13 +41,50 @@ int main(int argc, char *argv[]) {
         // This triggers the letterbox preprocessing and DPU task in yolovx_imp.cpp
         auto result = det->run(frame);
 
-        // 4. Overlay Detection Results
-        // Uses the drawing logic provided in your process_result.hpp
-        process_result(frame, result, false);
+        static const std::vector<std::string> class_names = {
+            "person","bicycle","car","motorcycle","airplane","bus","train","truck","boat",
+            "traffic light","fire hydrant","stop sign","parking meter","bench","bird","cat",
+            "dog","horse","sheep","cow","elephant","bear","zebra","giraffe","backpack",
+            "umbrella","handbag","tie","suitcase","frisbee","skis","snowboard","sports ball",
+            "kite","baseball bat","baseball glove","skateboard","surfboard","tennis racket",
+            "bottle","wine glass","cup","fork","knife","spoon","bowl","banana","apple",
+            "sandwich","orange","broccoli","carrot","hot dog","pizza","donut","cake","chair",
+            "couch","potted plant","bed","dining table","toilet","tv","laptop","mouse",
+            "remote","keyboard","cell phone","microwave","oven","toaster","sink",
+            "refrigerator","book","clock","vase","scissors","teddy bear","hair drier",
+            "toothbrush"
+        };
 
-        // 5. Display through DisplayPort
-        // imshow renders to the connected DP monitor on the ZCU104
+        for (const auto &obj : result.bboxes) {
+            int label = obj.label;
+            auto &box = obj.box;
+
+            cv::rectangle(frame,
+                          cv::Point((int)box[0], (int)box[1]),
+                          cv::Point((int)box[2], (int)box[3]),
+                          cv::Scalar(0,255,0), 2);
+
+            std::string text = class_names[label] + " " +
+                               cv::format("%.2f", obj.score);
+
+            cv::putText(frame,
+                        text,
+                        cv::Point((int)box[0], std::max(0, (int)box[1] - 5)),
+                        cv::FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        cv::Scalar(0,255,0),
+                        2);
+        }
+
         imshow("YOLOvX Nano Live Inference", frame);
+
+        // // 4. Overlay Detection Results
+        // // Uses the drawing logic provided in your process_result.hpp
+        // process_result(frame, result, false);
+
+        // // 5. Display through DisplayPort
+        // // imshow renders to the connected DP monitor on the ZCU104
+        // imshow("YOLOvX Nano Live Inference", frame);
 
         // Exit on 'q' or 'ESC'
         char key = (char)waitKey(1);
