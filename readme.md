@@ -113,7 +113,7 @@ file yolox_nano_app
 ## Running on KV260
 
 ### 4. Hardware Connections & File Transfer
-<img width="1169" height="1528" alt="kria" src="https://github.com/user-attachments/assets/805d8631-e641-458e-84cb-60f81bb67f88" />
+<img width="500" height="500" alt="kria" src="https://github.com/user-attachments/assets/805d8631-e641-458e-84cb-60f81bb67f88" />
 **Required Connections:**
 
 * **Ethernet Cable:** For data transfer / SCP
