@@ -1,125 +1,180 @@
+Here is the properly formatted `README.md`. It fixes the broken Markdown formatting, indentation, missing linebreaks, and code blocks so that it renders cleanly on GitHub.
 
+```markdown
 # YOLOX-Nano on Kria KV260 (Vitis-AI Deployment)
 
 Deployment notes and code for running real-time YOLOX-Nano object detection on the AMD Xilinx Kria KV260 Vision AI Starter Kit using Vitis-AI and PetaLinux.
 
-
+---
 
 ## Directory Structure
 
-
+```text
 Yolox_nano_KV260/
-├── images/
-├── mpsoc/                                  # PetaLinux BSP & configuration files
+├── images/                                 # Hardware and live detection captures
+├── mpsoc/                                  # PetaLinux BSP & host compiler setup files
 ├── pt_yolox-nano_coco_416_416_1G_3.0/      # Downloaded Model Zoo artifacts & .xmodel
 ├── yolox_nano_custom.cpp                   # C++ application using Vitis-AI runtime
 ├── results.md                              # Live inference verification & results
 └── README.md
 
+```
 
-Deployment Steps
+---
 
-1. Vitis-AI Setup (Host Machine)
+## Deployment Steps
 
-Clone the repo and pull the PyTorch Docker container:
+### 1. Vitis-AI Setup (Host Machine)
 
-git clone [https://github.com/Xilinx/Vitis-AI]
+Clone the repository and pull the PyTorch Docker container:
+
+```bash
+git clone [https://github.com/Xilinx/Vitis-AI](https://github.com/Xilinx/Vitis-AI)
 cd Vitis-AI
-
 docker pull xilinx/vitis-ai-pytorch-cpu:latest
 
+```
 
-Steps to Enter Vitis-AI 
---open linux shell within Vitis-AI repo
---run ./docker_run.sh xilinx/vitis-ai-pytorch-cpu:latest
---enter conda-activate-vitis-ai-pytorch
+**Steps to Enter Vitis-AI:**
 
-we are inside vitis-ai now
+1. Open a Linux shell inside the `Vitis-AI` repository directory.
+2. Launch the container:
+```bash
+./docker_run.sh xilinx/vitis-ai-pytorch-cpu:latest
+
+```
 
 
-2. Download the Model Zoo XModel
+3. Activate the PyTorch environment:
+```bash
+conda activate vitis-ai-pytorch
 
-the link to downlaod xmodel is in the yaml file
+```
 
-name: yolox_nano_pt
-  type: xmodel
-  board: zcu102 & zcu104 & kv260
-  download link: https://www.xilinx.com/bin/public/openDownload?filename=yolox_nano_pt-zcu102_zcu104_kv260-r3.0.0.tar.gz
-  checksum: a13348e3ffd758531989b5dccac3b794
 
-3. Cross-Compile the Application (Host Machine)
 
-Source your PetaLinux SDK environment and compile `yolox_nano_custom.cpp` for ARM64:
+---
 
-run this in terminal- .\mpsoc\host_cross_compiler_setup.sh
+### 2. Download the Model Zoo XModel
 
-# Source the cross-compilation environment
-source ~petalinux/2022.2/environment-setup-cortexa72-cortexa53-xilinx-linux
+The download link for the compiled `.xmodel` is located in the model YAML file:
 
-after the above command executes , in the Vitis-ai repo navigate to this folder- .\Vitis-AI-3.0\examples\vai_library\samples\yolovx
+* **Model Name:** `yolox_nano_pt`
+* **Target Board:** ZCU102 / ZCU104 / KV260
+* **Direct Package Download:** [yolox_nano_pt-zcu102_zcu104_kv260-r3.0.0.tar.gz](https://www.xilinx.com/bin/public/openDownload?filename=yolox_nano_pt-zcu102_zcu104_kv260-r3.0.0.tar.gz)
+* **Checksum:** `a13348e3ffd758531989b5dccac3b794`
 
-there will be build.sh where you have to place your yolox_nano_custom.cpp
+Extract the downloaded archive on your host machine to obtain `yolox_nano.xmodel` and `yolox_nano.prototxt`.
 
-Run ./build.sh
+---
 
-# Verify architecture
+### 3. Cross-Compile the Application (Host Machine)
+
+1. Run the host environment setup script:
+```bash
+./mpsoc/host_cross_compiler_setup.sh
+
+```
+
+
+2. Source the cross-compilation environment:
+```bash
+source ~/petalinux/2022.2/environment-setup-cortexa72-cortexa53-xilinx-linux
+
+```
+
+
+3. Navigate to the sample directory inside the Vitis-AI repository:
+```bash
+cd ./Vitis-AI/examples/vai_library/samples/yolovx
+
+```
+
+
+4. Place `yolox_nano_custom.cpp` into this directory and compile:
+```bash
+./build.sh
+
+```
+
+
+5. Verify that the output binary is compiled for ARM64:
+```bash
 file yolox_nano_app
 
-
-*(Make sure the output confirms `ELF 64-bit LSB executable, ARM aarch64`)*
-
+```
 
 
-Running on KV260
+*Expected output snippet:* `ELF 64-bit LSB executable, ARM aarch64`
 
- 4. Make the connections & Copy Files to the Board
+---
 
+## Running on KV260
 
-![Kria KV260 Board Setup](images/kria/jpeg)
+### 4. Hardware Connections & File Transfer
 
-connection:ethernet(for data transfer),usb cable(for SSH),web cam (for frames input),HDMI & mouse
+**Required Connections:**
 
-for data transfer, set IP address for the board, and transfer the binary, `.xmodel`, and `.prototxt`:
+* **Ethernet Cable:** For data transfer / SCP
+* **Micro-USB Cable:** For UART / SSH serial terminal
+* **USB Web Camera:** For live video frame input (`/dev/video0`)
+* **HDMI Monitor & Mouse:** For live graphical display output
 
+**Transfer Files to the Board:**
+Set the IP address for the board, then copy the compiled binary, `.xmodel`, and `.prototxt` to the board:
 
-scp yolox_nano_app petalinux@<KV260_IP>:/usr/share/vitis_ai_library/models/yolox_nano
-scp yolox_nano.xmodel petalinux@<KV260_IP>:/usr/share/vitis_ai_library/models/yolox_nano
-scp yolox_nano.prototxt petalinux@<KV260_IP>:/usr/share/vitis_ai_library/models/yolox_nano
+```bash
+scp yolox_nano_app petalinux@<KV260_IP>:/usr/share/vitis_ai_library/models/yolox_nano/
+scp yolox_nano.xmodel petalinux@<KV260_IP>:/usr/share/vitis_ai_library/models/yolox_nano/
+scp yolox_nano.prototxt petalinux@<KV260_IP>:/usr/share/vitis_ai_library/models/yolox_nano/
 
-naviagte to this path before doing scp /usr/share/vitis_ai_library/models/, this path has pre built xmodels and prototxt already , group them into anoher folder with the new executible(names should match otherwuse it will give error during runtime)
+```
 
-example file structure-
+> **Note:** Vitis AI requires matching names for the folder, executable, `.xmodel`, and `.prototxt`. Otherwise, runtime errors will occur.
+
+**Target Directory Layout:**
+
+```text
 /usr/share/vitis_ai_library/models/
 └── yolox_nano/
     ├── yolox_nano.prototxt
     ├── yolox_nano.xmodel
     └── yolox_nano_app
 
-5. Setup Vitis-AI Model Directory Structure
+```
 
-SSH into the KV260. Vitis-AI requires the folder name, model file, prototxt, and binary to share matching naming conventions under `/usr/share/vitis_ai_library/models/`:
+---
 
+### 5. Setup Permissions on the Board
 
+SSH into the KV260 and make the binary executable:
 
+```bash
 cd /usr/share/vitis_ai_library/models/yolox_nano
 sudo chmod +x yolox_nano_app
 
+```
 
-6. Run Inference with HDMI Display
+---
 
-Ensure your monitor is plugged into the KV260 display output, set the display variable, and execute:
+### 6. Run Inference with HDMI Display
 
+Ensure your monitor is plugged into the KV260 display output, set the display variable, and run the binary:
 
+```bash
 export DISPLAY=:0.0
 ./yolox_nano_app yolox_nano 0
 
+```
 
-*(Argument `0` maps to `/dev/video0` USB camera input)*
+*(Argument `0` maps to the `/dev/video0` USB camera input)*
 
+---
 
-7.Results & Verification
+## 7. Results & Verification
 
-For live detection captures and inference performance on the KV260, see [results.md](results.md).
+For live detection captures and inference performance logs on the KV260, see [results.md](results.md).
 
+```
 
-[def]: https://github.com/Xilinx/Vitis-AI
+```
