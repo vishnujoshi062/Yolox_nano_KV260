@@ -1,4 +1,4 @@
-Here is the properly formatted `README.md`. It fixes the broken Markdown formatting, indentation, missing linebreaks, and code blocks so that it renders cleanly on GitHub.
+YOLOX-Nano on Kria KV260 (Vitis-AI Deployment)
 
 ```markdown
 # YOLOX-Nano on Kria KV260 (Vitis-AI Deployment)
