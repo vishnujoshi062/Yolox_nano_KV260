@@ -1,4 +1,4 @@
-YOLOX-Nano on Kria KV260 (Vitis-AI Deployment)
+### YOLOX-Nano on Kria KV260 (Vitis-AI Deployment)
 
 ```markdown
 # YOLOX-Nano on Kria KV260 (Vitis-AI Deployment)
